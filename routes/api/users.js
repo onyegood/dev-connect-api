@@ -17,7 +17,20 @@ const User = require('../../models/User');
 //@route    GET api/users/test
 //@desc     Tests users route
 //@access   Public
-router.get('/', (req, res) => res.json({msg: 'User works'}));
+router.get('/all', passport.authenticate('jwt', { session: false }), (req, res) => {
+    
+    const errors = {};
+
+    User.find()
+    .then(users => {
+        if (!users) {
+            errors.noprofile = 'there are no users';
+            res.status(404).json(errors);
+        }
+        res.json(users);
+    })
+    .catch(err => res.status(404).json({message: 'there are no users'}));
+});
 
 //@route    GET api/users/register
 //@desc     Register user route
@@ -93,7 +106,7 @@ router.post('/login', (req, res) => {
             if (isMatch) {
                 //User Matched
                 //res.json({msg: 'Success'});
-
+                
                 //User Payload
                 const payload = { 
                     id: user.id,
@@ -113,7 +126,7 @@ router.post('/login', (req, res) => {
                         });
                 });
             }else{
-                return res.status(400).json({password: 'Password incorrect'});
+                return res.status(400).json({ message: 'Password incorrect', success: false});
             }
         })
     });
